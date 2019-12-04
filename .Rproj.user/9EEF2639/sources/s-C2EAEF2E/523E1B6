@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1575488835801.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "523E1B6",
+    "lastKnownWriteTime" : 1575488865,
+    "last_content_update" : 1575489008649,
+    "path" : "~/Desktop/newproject/content/post/2019-12-04-test-post.Rmd",
+    "project_path" : "content/post/2019-12-04-test-post.Rmd",
+    "properties" : {
+        "cursorPosition" : "15,44",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

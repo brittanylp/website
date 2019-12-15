@@ -1,0 +1,35 @@
+---
+title: blogpost
+author: Brittany
+date: '2019-12-12'
+slug: blogpost
+categories: []
+tags: []
+description: ''
+---
+
+This semester when we first began using Python, I was a little off put and didn't immedietly see the benefits of the new tool. It may just be the simplicity of the homework and the code, but I was amazed when we started using Python for nucleotide sequencing. It was amazing that in basically one line of code, I could filter through the long line of nucleotides and find "3-mers" that would show the protein sequence. Here is an example of application:
+
+# Find all 3-mers in these two sequences
+my_seq1 = "ATCATCATG"
+my_seq2 = "CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT"
+
+def count_kmers(read, k):
+    counts = {}
+    # Calculate how many kmers of length k there are
+    num_kmers = len(read) - k + 1
+    # Loop over the kmer start positions
+    for i in range(num_kmers):
+        # Slice the string to get the kmer
+        kmer = read[i:i+k]
+        # Add the kmer to the dictionary if it's not there
+        if kmer not in counts:
+            counts[kmer] = 0
+        # Increment the count for this kmer
+        counts[kmer] += 1
+    # Return the final counts
+    return counts
+count_kmers("ATCATCATG",3)
+count_kmers("CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT",3)
+
+![nucleotidesnucleotidesnucleotides](/post/2019-12-12-blogpost_files/nucleotide.png)

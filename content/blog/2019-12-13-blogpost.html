@@ -1,0 +1,40 @@
+---
+title: blogpost
+author: ''
+date: '2019-12-13'
+slug: blogpost
+categories: []
+tags: []
+description: ''
+---
+
+
+
+<p>This semester when we first began using Python, I was a little off put and didn’t immedietly see the benefits of the new tool. It may just be the simplicity of the homework and the code, but I was amazed when we started using Python for nucleotide sequencing. It was amazing that in basically one line of code, I could filter through the long line of nucleotides and find “3-mers” that would show the protein sequence. Here is an example of application:</p>
+<pre class="python"><code># Find all 3-mers in these two sequences
+my_seq1 = &quot;ATCATCATG&quot;
+my_seq2 = &quot;CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT&quot;
+
+def count_kmers(read, k):
+    counts = {}
+    # Calculate how many kmers of length k there are
+    num_kmers = len(read) - k + 1
+    # Loop over the kmer start positions
+    for i in range(num_kmers):
+        # Slice the string to get the kmer
+        kmer = read[i:i+k]
+        # Add the kmer to the dictionary if it&#39;s not there
+        if kmer not in counts:
+            counts[kmer] = 0
+        # Increment the count for this kmer
+        counts[kmer] += 1
+    # Return the final counts
+    return counts
+count_kmers(&quot;ATCATCATG&quot;,3)</code></pre>
+<pre><code>## {&#39;ATG&#39;: 1, &#39;CAT&#39;: 2, &#39;ATC&#39;: 2, &#39;TCA&#39;: 2}</code></pre>
+<pre class="python"><code>count_kmers(&quot;CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT&quot;,3)</code></pre>
+<pre><code>## {&#39;CTT&#39;: 1, &#39;AAA&#39;: 1, &#39;ATC&#39;: 1, &#39;AAC&#39;: 1, &#39;ATA&#39;: 2, &#39;AGG&#39;: 2, &#39;CTC&#39;: 1, &#39;AGC&#39;: 1, &#39;AAT&#39;: 1, &#39;ATT&#39;: 1, &#39;CTG&#39;: 1, &#39;CTA&#39;: 2, &#39;ACT&#39;: 4, &#39;CAC&#39;: 1, &#39;ACG&#39;: 3, &#39;CAA&#39;: 1, &#39;CCA&#39;: 2, &#39;CCG&#39;: 1, &#39;CCC&#39;: 1, &#39;TAT&#39;: 2, &#39;CGA&#39;: 1, &#39;CAG&#39;: 3, &#39;TCT&#39;: 1, &#39;GAT&#39;: 1, &#39;TTT&#39;: 1, &#39;TGC&#39;: 1, &#39;GGA&#39;: 1, &#39;TAA&#39;: 1, &#39;GGC&#39;: 1, &#39;TAC&#39;: 4, &#39;TTA&#39;: 2, &#39;GAC&#39;: 1, &#39;CGT&#39;: 1, &#39;TCA&#39;: 1, &#39;GCA&#39;: 1, &#39;GTA&#39;: 1, &#39;GCC&#39;: 3, &#39;GCT&#39;: 1, &#39;CGC&#39;: 2}</code></pre>
+<div class="figure">
+<img src="/post/2019-12-12-blogpost_files/nucleotide.png" alt="nucleotidesnucleotidesnucleotides" />
+<p class="caption">nucleotidesnucleotidesnucleotides</p>
+</div>

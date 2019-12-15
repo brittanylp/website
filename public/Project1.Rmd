@@ -1,0 +1,76 @@
+---
+title: "Project 1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+The two datasets chosen for this project were Bad_drivers and partisan_lean_state. The bad drivers dataset shows gives amounts of collisions under circumstances such as speeding, alcohol, etc as well as data on insurance premiums cost and lost based on states. The partisan dataset shows the party of the vote, how they lean, and the Cook Voting Index. I selected the two datasets from the fivethirtyeight to see if there were any potential associations between state, party, and “bad driving”. I expected to see more speed related accidents in Texas, New Mexico, and Arizona due to large states and highways going straight across. 
+
+```{R}
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("fivethirtyeight")
+library(fivethirtyeight)
+library(ggplot2)
+untidydrivers<-bad_drivers%>%pivot_longer(contains("perc"))
+untidyproj1<-untidydrivers%>%full_join(partisan_lean_state,by="state")
+tidyproj1<-untidyproj1%>%pivot_wider(names_from = "name")
+tidyproj1<-tidyproj1[-c(51),]
+```
+
+First the packages with the datasets were loaded along with packages containing functions needed throughout the project. Then all the columns containing a percentage were merged using pivot_longer to untidy the data. The data was then joined with a full join to keep all of the variables. All but one datapoint had corresponding values by state, which had D.C.counting as a state and was removed. D.C. being removed might cause some discrepancies due to those drivers not being accounted for. Once the data was joined, pivot_wider was used to re-tidy the data and separate the accidents by type; speeding, alcohol, not distracted, and no previous.
+
+```{R}
+tidyproj1%>%filter(state=="Texas")%>%select(state,pvi_party,pvi_amount,perc_speeding,perc_alcohol,num_drivers,insurance_premiums,losses)%>%arrange(desc(perc_speeding))
+
+
+tp1sp<-tidyproj1%>%mutate(speedparty=pvi_amount/perc_speeding)
+
+
+summtidpro1<-tidyproj1%>%group_by(pvi_party)%>%summarize(mean_drivers=mean(num_drivers,na.rm = TRUE),mean_ip=mean(insurance_premiums,na.rm = TRUE),mean_losses=mean(losses,na.rm = TRUE),mean_speed=mean(perc_speeding,na.rm = TRUE),mean_alc=mean(perc_alcohol,na.rm = TRUE),sd_drivers=sd(num_drivers,na.rm = TRUE),sd_ip=sd(insurance_premiums,na.rm = TRUE),sd_losses=sd(losses,na.rm = TRUE),sd_speed=sd(perc_speeding,na.rm = TRUE),sd_alc=sd(perc_alcohol,na.rm = TRUE),min(perc_speeding),max(perc_speeding))
+
+```
+
+The first chunk of data wrangling code was a series of pipes to spit out a specific set of information. It was filtered by returning only values from Texas, then selected certain columns of data from Texas. From there the percentage of fatal accidents were arranged in descending order. Then in a separate line of code, the tidy merged data was mutated to create a new column called “speedparty” which is the Voting Index party lean divided by the speeding fatal accident percentage. Lastly, the data was grouped by party and summarized by mean and standard deviation of several different recorded data. The min and max of percentage of fatal speeding accidents were also found and summarized into table. 
+
+```{R}
+tidyproj1%>%ggplot(aes(x=num_drivers,y=perc_speeding,color=state))+ggtitle("Drivers by state")+xlab("Drivers in fatal accidents (pbm)")+ylab("% who were speeding")+geom_point()+theme(legend.position = "none")
+```
+
+This plot shows where each state is (in a different color) in relation to one another by the amount of fatal drivers and how much of those fatal accidents were speed related. There are no clear relationships or trends between any of these variables. However, there are still slight clusters of points. There are also some really high and low values in both speed percentage and total fatal accidents per billion in which I would be curious as to which states and why these values belong to and what the cause would be for this result. 
+
+```{R}
+tidyproj1%>%ggplot(aes(x=state,y=perc_speeding,fill=pvi_party))+geom_bar(stat = "summary")+theme(axis.text.x = element_text(angle = 45))+ggtitle("Speeding by State")+xlab("State")+ylab("Percent speeding")
+```
+This graph shows states on the x axis and the percentage of fatal speeding crashes on the y axis. Each state’s bar is colored to show the the way each state voted. There doesn’t seem to be any sort of indication or correlation between party and the relation to speeding crashes. Just by looking however, there does seem like there could be some correlation between larger and more rural states and speeding accidents, possibly because of less trafficked highways and more ground to cover. More rural and southern states also tend to be republican. 
+
+```{R}
+proj1nums<-tidyproj1%>%select_if(is.numeric)%>%scale()
+
+rownames(proj1nums)<-tidyproj1$state
+
+proj_pca<-princomp(na.omit(proj1nums),cor = TRUE)
+
+names(proj_pca)
+ 
+summary(proj_pca,loadings = T)
+ 
+eigval<-proj_pca$sdev^2
+varprop=round(eigval/sum(eigval),2)
+ 
+ggplot()+geom_bar(aes(y=varprop,x=1:8),stat="identity")+xlab("")+geom_path(aes(y=varprop,x=1:8))+geom_text(aes(x=1:8,y=varprop,label=round(varprop,2)),vjust=1,col="white",size=5)+scale_y_continuous(breaks=seq(0,.6,.2),labels = scales::percent)+scale_x_continuous(breaks=1:10)
+ 
+ 
+round(cumsum(eigval)/sum(eigval),2)
+ 
+eigval
+
+ggplot()+geom_point(aes(proj_pca$scores[,1], proj_pca$scores[,2]))+xlab("PC1")+ylab("PC2")
+
+```
+

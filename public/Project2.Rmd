@@ -1,0 +1,236 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "SDS348 Fall 2019"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+```
+
+```{r}
+library(sandwich)
+race <- read.csv("~/Desktop/TenMileRace P2 data.csv")
+head(race)
+```
+*I've decided to use the TenMileRace data for my second project. This dataset is basically just information for each runner in the race. Runner data includes the state of where they're from, gun time (in seconds), official/ net time (in seconds), age in years, and sex (M/F).*
+
+```{r}
+p2man<- manova(cbind(net,age)~sex,data=race)
+summary(p2man)
+summary.aov(p2man)
+race%>%group_by(sex)%>%summarize(mean(net),mean(age))
+pairwise.t.test(race$net,race$sex,p.adj="none")
+pairwise.t.test(race$age,race$sex,p.adj="none")
+1-(1-0.05)^7
+0.05/7
+```
+*Significant differences were found among net race time and age for males and females. Bonferroni adjusted significance is 0.007142857 and both remained significant after adjusting for the Bonferroni correction. 1 MANOVA, 2 ANOVAs, and 4 ttests were conducted. The probability of making a type 1 error is 0.3016627. The sample is large with over 8000 observations and includes all of the people who were timed in the race. This allows us to meet the assumption of independence and normality.This could also be checked by qqplot or histogram.*
+
+```{r}
+## Need randomization test
+race%>%group_by(sex)%>%summarize(m=mean(net))%>%summarize(diff(m))
+race$sex%>%as.factor()%>%head()
+rand_dist<-vector()
+for (i in 1:5000) {
+  ne<-data.frame(guntime=sample(race$net),sex=race$sex)
+  rand_dist[i]<-mean(ne[ne$sex=="m",]$guntime)-mean(ne[ne$sex=="f",]$guntime)
+}
+
+mean(rand_dist<-635.6958)*2
+
+t.test(data=race,net~sex)
+{hist(rand_dist,main = "",ylab = ""); abline(v=-635.6958, col="red")}
+
+```
+
+```{r}
+race$net_c <- race$net - mean(race$net, na.rm = T) 
+race$age_c<- race$age - mean(race$age, na.rm = T)
+lm <- lm(age_c ~ race$net_c * sex, data = race) 
+summary(lm)
+
+
+```
+*The intercept coefficient provides data when all other variables are 0, but in this case, the numerics are mean centered, so it'll provide the prediction based on the average. Assuming sex is F and an average net time, the predicted age is 3.362e+01. Controlling for gun time, the estimate is 0.0017286, controlling for sex the estimate is 6.7205979, and the interation has a coefficient of 0.0007527 (female and average gun time)*
+
+```{r}
+library(ggplot2)
+
+ggplot(race, aes(x=net, y=age, color=sex))+geom_point()+stat_smooth(method = "lm")
+
+```
+```{r}
+library(lmtest)
+resids<-lm$residuals; fitvals<-lm$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col="red")
+bptest(lm)
+ggplot()+geom_histogram(aes(resids),bins=20)
+ggplot()+geom_qq(aes(sample=resids))+geom_qq_line(aes(sample=resids))
+```
+
+
+
+
+```{r}
+
+coeftest(lm, vcov = vcovHC(lm))[,1:2]
+
+```
+
+*There aren't any changes in the estimates when recomputing the regression results with robust standard errors via the coeftest function. The only thing that changes is the values under standard error, which is to be expected.*
+
+```{r}
+summary(lm)
+
+```
+*The proportion of the variation in the outcome that is explained by the model is 0.09896 as shown by the Multiple R-squared value.*
+
+```{r}
+samp_distn<-replicate(1000, {
+ boot_dat<-race[sample(nrow(race),replace=TRUE),]
+ fitproj<-lm(age_c~net_c*sex,data=boot_dat)
+ coef(fitproj)
+})
+## Estimated SEs
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd)
+```
+*Origional and robust standard errors were the same. However when bootstrapped, the standard errors differ slightly. The intercept compares 0.1429722109 to .1388586, net_c compares 0.0001647073 to 0.0001699229, sexM compares 0.2334555823 to 0.2311771, and the interaction net_c:sexM compares 0.0002475824 to 0.0002452089*
+
+```{r}
+pfit<- glm(sex~net_c+age_c,data = race,  family = binomial(link = "logit"))
+summary(pfit)
+probpr<-predict(pfit,type = "response")
+
+
+table(predict=as.numeric(probpr>0.5),truth=race$sex)%>%addmargins()
+
+#Accuracy
+(3009+2964)/8636
+
+#TNR (Specificity)
+(3009+4356)
+
+#TPR (Sensitivity)
+(2964/4280)
+
+#PPV (Precision)
+(2964/4311)
+```
+*At an average gun time and an average age, the intercept is expected to be -6.344e-03. Controlling for average age, gun time is a significant predictor of sex. As net gun time increases, the more likely the racer was female (-9.048e-04). Controlling for average gun time, age is also a significant predictor of sex. As age increases, the more likely they were male (6.523e-02)*
+```{r}  
+library(plotROC)
+#ggplot(race)+geom_density(aes(logit,fill=sex))
+
+class_diag<-function(probs,truth){
+ tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+ acc=sum(diag(tab))/sum(tab)
+ sens=tab[2,2]/colSums(tab)[2]
+ spec=tab[1,1]/colSums(tab)[1]
+ ppv=tab[2,2]/rowSums(tab)[2]
+ if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+ #CALCULATE EXACT AUC
+ ord<-order(probs, decreasing=TRUE)
+ probs <- probs[ord]; truth <- truth[ord]
+ TPR=cumsum(truth)/max(1,sum(truth))
+ FPR=cumsum(!truth)/max(1,sum(!truth))
+ dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+ TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+ n <- length(TPR)
+ auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+ data.frame(acc,sens,spec,ppv,auc)
+} 
+
+
+ROCplotpr<-ggplot(race)+geom_roc(aes(d=sex,m=probpr), n.cuts=0) 
+ROCplotpr
+class_diag(probpr,race$sex)
+```
+*AUC is the area under the ROC curve which shows us how good a model is at classifying. This model has an auc of 0.7560329 which is considered acceptable. It's not great, but it also isn't terrible.*
+
+```{r}
+
+set.seed(1234)
+k=3 #choose number of folds
+data1<-race[sample(nrow(race)),] #randomly order rows
+folds<-cut(seq(1:nrow(race)),breaks=k,labels=F) #create folds
+diags<-NULL
+for(i in 1:k){
+ ## Create training and test sets
+ train<-data1[folds!=i,]
+ test<-data1[folds==i,]
+ truth<-test$sex
+ ## Train model on training set
+ fit<-glm(sex~net_c+age_c,data=train,family="binomial")
+ probs<-predict(fit,newdata = test,type="response")
+ ## Test model on test set (save all k results)
+ diags<-rbind(diags,class_diag(probs,truth))
+}
+apply(diags,2,mean)
+
+
+```
+*acc is 0.6927966, sens is 0.6888262, spec is 0.6972125 *
+
+
+```{r}
+#install.packages("glmnet")
+library(glmnet)
+library(dplyr)
+y<-as.matrix(race$sex)
+x<-model.matrix(pfit)
+
+cv<-cv.glmnet(x,y,family="binomial")
+
+#View Lasso
+{plot(cv$glmnet.fit,"lambda",label=TRUE)
+  abline(v= log(cv$lambda.1se))
+  abline(v= log(cv$lambda.min),lty=2)}
+
+#Lasso glm check
+lasso1<-glmnet(x,y,lambda=cv$lambda.1se, family = "binomial")
+coef(lasso1)
+
+
+set.seed(1234)
+k=10 #choose number of folds
+data1<-race[sample(nrow(race)),] #randomly order rows
+folds<-cut(seq(1:nrow(race)),breaks=k,labels=F) #create folds
+diags<-NULL
+for(i in 1:k){
+ ## Create training and test sets
+ train<-data1[folds!=i,]
+ test<-data1[folds==i,]
+ truth<-test$sex
+ ## Train model on training set
+ fit<-glm(sex~net_c+age_c,data=train,family="binomial")
+ probs<-predict(fit,newdata = test,type="response")
+ ## Test model on test set (save all k results)
+ diags<-rbind(diags,class_diag(probs,truth))
+}
+diags%>%summarize_all(mean)
+```
+*Both variables are retained as predictors. The acc is higher at 0.7200915 than the logistic regression in q5, which was 0.6927966.*

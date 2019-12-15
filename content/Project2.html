@@ -1,0 +1,342 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "SDS348 Fall 2019"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+
+
+
+<pre class="r"><code>library(sandwich)
+race &lt;- read.csv(&quot;~/Desktop/TenMileRace P2 data.csv&quot;)
+head(race)</code></pre>
+<pre><code>##   X state time  net age sex
+## 1 1    VA 6060 5978  12   M
+## 2 2    MD 4515 4457  13   M
+## 3 3    VA 5026 4928  13   M
+## 4 4    MD 4229 4229  14   M
+## 5 5    MD 5293 5076  14   M
+## 6 6    VA 6234 5968  14   M</code></pre>
+<p><em>I’ve decided to use the TenMileRace data for my second project. This dataset is basically just information for each runner in the race. Runner data includes the state of where they’re from, gun time (in seconds), official/ net time (in seconds), age in years, and sex (M/F).</em></p>
+<pre class="r"><code>p2man&lt;- manova(cbind(net,age)~sex,data=race)
+summary(p2man)</code></pre>
+<pre><code>## Df Pillai approx F num Df den Df Pr(&gt;F)
+## sex 1 0.18834 1001.6 2 8633 &lt; 2.2e-16 ***
+## Residuals 8634
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>summary.aov(p2man)</code></pre>
+<pre><code>## Response net :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## sex 1 872469257 872469257 1039.5 &lt; 2.2e-16 ***
+## Residuals 8634 7246447048 839292
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response age :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## sex 1 62540 62540 594.99 &lt; 2.2e-16 ***
+## Residuals 8634 907538 105
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>race%&gt;%group_by(sex)%&gt;%summarize(mean(net),mean(age))</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   sex   `mean(net)` `mean(age)`
+##   &lt;fct&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+## 1 F           5916.        34.2
+## 2 M           5281.        39.6</code></pre>
+<pre class="r"><code>pairwise.t.test(race$net,race$sex,p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  race$net and race$sex 
+## 
+##   F     
+## M &lt;2e-16
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(race$age,race$sex,p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  race$age and race$sex 
+## 
+##   F     
+## M &lt;2e-16
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>1-(1-0.05)^7</code></pre>
+<pre><code>## [1] 0.3016627</code></pre>
+<pre class="r"><code>0.05/7</code></pre>
+<pre><code>## [1] 0.007142857</code></pre>
+<p><em>Significant differences were found among net race time and age for males and females. Bonferroni adjusted significance is 0.007142857 and both remained significant after adjusting for the Bonferroni correction. 1 MANOVA, 2 ANOVAs, and 4 ttests were conducted. The probability of making a type 1 error is 0.3016627. The sample is large with over 8000 observations and includes all of the people who were timed in the race. This allows us to meet the assumption of independence and normality.This could also be checked by qqplot or histogram.</em></p>
+<pre class="r"><code>## Need randomization test
+race%&gt;%group_by(sex)%&gt;%summarize(m=mean(net))%&gt;%summarize(diff(m))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `diff(m)`
+##       &lt;dbl&gt;
+## 1     -636.</code></pre>
+<pre class="r"><code>race$sex%&gt;%as.factor()%&gt;%head()</code></pre>
+<pre><code>## [1] M M M M M M
+## Levels: F M</code></pre>
+<pre class="r"><code>rand_dist&lt;-vector()
+for (i in 1:5000) {
+  ne&lt;-data.frame(guntime=sample(race$net),sex=race$sex)
+  rand_dist[i]&lt;-mean(ne[ne$sex==&quot;m&quot;,]$guntime)-mean(ne[ne$sex==&quot;f&quot;,]$guntime)
+}
+
+mean(rand_dist&lt;-635.6958)*2</code></pre>
+<pre><code>## [1] 1271.392</code></pre>
+<pre class="r"><code>t.test(data=race,net~sex)</code></pre>
+<pre><code>##
+## Welch Two Sample t-test
+##
+## data: net by sex
+## t = 32.24, df = 8624.2, p-value &lt; 2.2e-16
+## alternative hypothesis: true difference in means is not
+equal to 0
+## 95 percent confidence interval:
+## 597.0447 674.3468
+## sample estimates:
+## mean in group F mean in group M
+## 5916.398 5280.702</code></pre>
+<pre class="r"><code>{hist(rand_dist,main = &quot;&quot;,ylab = &quot;&quot;); abline(v=-635.6958, col=&quot;red&quot;)}</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>race$net_c &lt;- race$net - mean(race$net, na.rm = T) 
+race$age_c&lt;- race$age - mean(race$age, na.rm = T)
+lm &lt;- lm(age_c ~ race$net_c * sex, data = race) 
+summary(lm)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = age_c ~ race$net_c * sex, data = race)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -29.282 -7.685 -1.624 6.940 50.857
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) -3.2352337 0.1622050 -19.945 &lt; 2e-16 ***
+## race$net_c 0.0017286 0.0001696 10.190 &lt; 2e-16 ***
+## sexM 6.7205979 0.2292433 29.316 &lt; 2e-16 ***
+## race$net_c:sexM 0.0007527 0.0002365 3.182 0.00147 **
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 10.06 on 8632 degrees of
+freedom
+## Multiple R-squared: 0.09896, Adjusted R-squared: 0.09865
+## F-statistic: 316 on 3 and 8632 DF, p-value: &lt; 2.2e-16</code></pre>
+<p><em>The intercept coefficient provides data when all other variables are 0, but in this case, the numerics are mean centered, so it’ll provide the prediction based on the average. Assuming sex is F and an average net time, the predicted age is 3.362e+01. Controlling for gun time, the estimate is 0.0017286, controlling for sex the estimate is 6.7205979, and the interation has a coefficient of 0.0007527 (female and average gun time)</em></p>
+<pre class="r"><code>library(ggplot2)
+
+ggplot(race, aes(x=net, y=age, color=sex))+geom_point()+stat_smooth(method = &quot;lm&quot;)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>library(lmtest)
+resids&lt;-lm$residuals; fitvals&lt;-lm$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col=&quot;red&quot;)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bptest(lm)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  lm
+## BP = 248.43, df = 3, p-value &lt; 2.2e-16</code></pre>
+<pre class="r"><code>ggplot()+geom_histogram(aes(resids),bins=20)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-6-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot()+geom_qq(aes(sample=resids))+geom_qq_line(aes(sample=resids))</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-6-3.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>coeftest(lm, vcov = vcovHC(lm))[,1:2]</code></pre>
+<pre><code>##                      Estimate   Std. Error
+## (Intercept)     -3.2352337411 0.1429722109
+## race$net_c       0.0017285663 0.0001647073
+## sexM             6.7205978704 0.2334555823
+## race$net_c:sexM  0.0007526749 0.0002475824</code></pre>
+<p><em>There aren’t any changes in the estimates when recomputing the regression results with robust standard errors via the coeftest function. The only thing that changes is the values under standard error, which is to be expected.</em></p>
+<pre class="r"><code>summary(lm)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = age_c ~ race$net_c * sex, data = race)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -29.282 -7.685 -1.624 6.940 50.857
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) -3.2352337 0.1622050 -19.945 &lt; 2e-16 ***
+## race$net_c 0.0017286 0.0001696 10.190 &lt; 2e-16 ***
+## sexM 6.7205979 0.2292433 29.316 &lt; 2e-16 ***
+## race$net_c:sexM 0.0007527 0.0002365 3.182 0.00147 **
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 10.06 on 8632 degrees of
+freedom
+## Multiple R-squared: 0.09896, Adjusted R-squared: 0.09865
+## F-statistic: 316 on 3 and 8632 DF, p-value: &lt; 2.2e-16</code></pre>
+<p><em>The proportion of the variation in the outcome that is explained by the model is 0.09896 as shown by the Multiple R-squared value.</em></p>
+<pre class="r"><code>samp_distn&lt;-replicate(1000, {
+ boot_dat&lt;-race[sample(nrow(race),replace=TRUE),]
+ fitproj&lt;-lm(age_c~net_c*sex,data=boot_dat)
+ coef(fitproj)
+})
+## Estimated SEs
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept)        net_c     sexM   net_c:sexM
+## 1   0.1363474 0.0001642344 0.225446 0.0002431764</code></pre>
+<p><em>Origional and robust standard errors were the same. However when bootstrapped, the standard errors differ slightly. The intercept compares 0.1429722109 to .1388586, net_c compares 0.0001647073 to 0.0001699229, sexM compares 0.2334555823 to 0.2311771, and the interaction net_c:sexM compares 0.0002475824 to 0.0002452089</em></p>
+<pre class="r"><code>pfit&lt;- glm(sex~net_c+age_c,data = race,  family = binomial(link = &quot;logit&quot;))
+summary(pfit)</code></pre>
+<pre><code>##
+## Call:
+## glm(formula = sex ~ net_c + age_c, family =
+binomial(link = &quot;logit&quot;),
+## data = race)
+##
+## Deviance Residuals:
+## Min 1Q Median 3Q Max
+## -2.2620 -0.9770 -0.2243 0.9717 2.7812
+##
+## Coefficients:
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) -6.344e-03 2.397e-02 -0.265 0.791
+## net_c -9.048e-04 2.886e-05 -31.354 &lt;2e-16 ***
+## age_c 6.523e-02 2.451e-03 26.610 &lt;2e-16 ***
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## (Dispersion parameter for binomial family taken to be 1)
+##
+## Null deviance: 11972 on 8635 degrees of freedom
+## Residual deviance: 10173 on 8633 degrees of freedom
+## AIC: 10179
+##
+## Number of Fisher Scoring iterations: 3</code></pre>
+<pre class="r"><code>probpr&lt;-predict(pfit,type = &quot;response&quot;)
+
+
+table(predict=as.numeric(probpr&gt;0.5),truth=race$sex)%&gt;%addmargins()</code></pre>
+<pre><code>##        truth
+## predict    F    M  Sum
+##     0   3009 1347 4356
+##     1   1316 2964 4280
+##     Sum 4325 4311 8636</code></pre>
+<pre class="r"><code>#Accuracy
+(3009+2964)/8636</code></pre>
+<pre><code>## [1] 0.6916396</code></pre>
+<pre class="r"><code>#TNR (Specificity)
+(3009+4356)</code></pre>
+<pre><code>## [1] 7365</code></pre>
+<pre class="r"><code>#TPR (Sensitivity)
+(2964/4280)</code></pre>
+<pre><code>## [1] 0.6925234</code></pre>
+<pre class="r"><code>#PPV (Precision)
+(2964/4311)</code></pre>
+<pre><code>## [1] 0.6875435</code></pre>
+<p><em>At an average gun time and an average age, the intercept is expected to be -6.344e-03. Controlling for average age, gun time is a significant predictor of sex. As net gun time increases, the more likely the racer was female (-9.048e-04). Controlling for average gun time, age is also a significant predictor of sex. As age increases, the more likely they were male (6.523e-02)</em></p>
+<pre class="r"><code>library(plotROC)
+#ggplot(race)+geom_density(aes(logit,fill=sex))
+
+class_diag&lt;-function(probs,truth){
+ tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+ acc=sum(diag(tab))/sum(tab)
+ sens=tab[2,2]/colSums(tab)[2]
+ spec=tab[1,1]/colSums(tab)[1]
+ ppv=tab[2,2]/rowSums(tab)[2]
+ if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+ #CALCULATE EXACT AUC
+ ord&lt;-order(probs, decreasing=TRUE)
+ probs &lt;- probs[ord]; truth &lt;- truth[ord]
+ TPR=cumsum(truth)/max(1,sum(truth))
+ FPR=cumsum(!truth)/max(1,sum(!truth))
+ dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+ TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+ n &lt;- length(TPR)
+ auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+ data.frame(acc,sens,spec,ppv,auc)
+} 
+
+
+ROCplotpr&lt;-ggplot(race)+geom_roc(aes(d=sex,m=probpr), n.cuts=0) 
+ROCplotpr</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-11-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>class_diag(probpr,race$sex)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## M 0.6916396 0.6875435 0.6957225 0.6925234 0.7560329</code></pre>
+<p><em>AUC is the area under the ROC curve which shows us how good a model is at classifying. This model has an auc of 0.7560329 which is considered acceptable. It’s not great, but it also isn’t terrible.</em></p>
+<pre class="r"><code>set.seed(1234)
+k=3 #choose number of folds
+data1&lt;-race[sample(nrow(race)),] #randomly order rows
+folds&lt;-cut(seq(1:nrow(race)),breaks=k,labels=F) #create folds
+diags&lt;-NULL
+for(i in 1:k){
+ ## Create training and test sets
+ train&lt;-data1[folds!=i,]
+ test&lt;-data1[folds==i,]
+ truth&lt;-test$sex
+ ## Train model on training set
+ fit&lt;-glm(sex~net_c+age_c,data=train,family=&quot;binomial&quot;)
+ probs&lt;-predict(fit,newdata = test,type=&quot;response&quot;)
+ ## Test model on test set (save all k results)
+ diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+apply(diags,2,mean)</code></pre>
+<pre><code>##       acc      sens      spec       ppv       auc 
+## 0.6918714 0.6868415 0.6968441 0.6930687 0.7556917</code></pre>
+<p><em>acc is 0.6927966, sens is 0.6888262, spec is 0.6972125 </em></p>
+<pre class="r"><code>#install.packages(&quot;glmnet&quot;)
+library(glmnet)
+library(dplyr)
+y&lt;-as.matrix(race$sex)
+x&lt;-model.matrix(pfit)
+
+cv&lt;-cv.glmnet(x,y,family=&quot;binomial&quot;)
+
+#View Lasso
+{plot(cv$glmnet.fit,&quot;lambda&quot;,label=TRUE)
+  abline(v= log(cv$lambda.1se))
+  abline(v= log(cv$lambda.min),lty=2)}</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-13-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#Lasso glm check
+lasso1&lt;-glmnet(x,y,lambda=cv$lambda.1se, family = &quot;binomial&quot;)
+coef(lasso1)</code></pre>
+<pre><code>## 4 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                        s0
+## (Intercept) -0.0060896314
+## (Intercept)  .           
+## net_c       -0.0007382972
+## age_c        0.0515860200</code></pre>
+<pre class="r"><code>set.seed(1234)
+k=10 #choose number of folds
+data1&lt;-race[sample(nrow(race)),] #randomly order rows
+folds&lt;-cut(seq(1:nrow(race)),breaks=k,labels=F) #create folds
+diags&lt;-NULL
+for(i in 1:k){
+ ## Create training and test sets
+ train&lt;-data1[folds!=i,]
+ test&lt;-data1[folds==i,]
+ truth&lt;-test$sex
+ ## Train model on training set
+ fit&lt;-glm(sex~net_c+age_c,data=train,family=&quot;binomial&quot;)
+ probs&lt;-predict(fit,newdata = test,type=&quot;response&quot;)
+ ## Test model on test set (save all k results)
+ diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+diags%&gt;%summarize_all(mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.6917549 0.6862912 0.6968856 0.6933629 0.7552519</code></pre>
+<p><em>Both variables are retained as predictors. The acc is higher at 0.7200915 than the logistic regression in q5, which was 0.6927966.</em></p>

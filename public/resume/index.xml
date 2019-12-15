@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Resumes on Brittany Phillips</title>
+    <link>/resume/</link>
+    <description>Recent content in Resumes on Brittany Phillips</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 15 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/resume/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Short Bio Sketch</title>
+      <link>/resume/short-bio-sketch/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/resume/short-bio-sketch/</guid>
+      <description>Brittany Phillips is a junior pre-med student at The University of Texas at Austin in the process of getting a BSA in biology along with a pre-health certificate and a minor in business while doing reasearch in a soft tissue biomechanics lab. She participates heavily in intermurals including ultimate frisbee, sand/indoor volleyball, and basketball. She is also a competetive member of both the Texas Running and Texas Rock Climbing Club.</description>
+    </item>
+    
+  </channel>
+</rss>

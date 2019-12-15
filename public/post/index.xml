@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on Chris Turner</title>
+    <title>Posts on Brittany Phillips</title>
     <link>/post/</link>
-    <description>Recent content in Posts on Chris Turner</description>
+    <description>Recent content in Posts on Brittany Phillips</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Wed, 04 Dec 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 15 Dec 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Test post</title>
-      <link>/2019/12/04/test-post/</link>
-      <pubDate>Wed, 04 Dec 2019 00:00:00 +0000</pubDate>
+      <title>a</title>
+      <link>/2019/12/15/a/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
       
-      <guid>/2019/12/04/test-post/</guid>
-      <description> 2+2 ## [1] 4 </description>
+      <guid>/2019/12/15/a/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>blogpost</title>
+      <link>/2019/12/12/blogpost/</link>
+      <pubDate>Thu, 12 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/2019/12/12/blogpost/</guid>
+      <description>This semester when we first began using Python, I was a little off put and didn’t immedietly see the benefits of the new tool. It may just be the simplicity of the homework and the code, but I was amazed when we started using Python for nucleotide sequencing. It was amazing that in basically one line of code, I could filter through the long line of nucleotides and find “3-mers” that would show the protein sequence.</description>
     </item>
     
   </channel>

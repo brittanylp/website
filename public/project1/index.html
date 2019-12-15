@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Brittany Phillips" />
+    <meta name="description" content="Describe your website">
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 1</title>
+    <meta name="generator" content="Hugo 0.60.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project1/">Project 1</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          January 1, 0001
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="r-markdown" class="section level2">
+<h2>R Markdown</h2>
+<p>The two datasets chosen for this project were Bad_drivers and partisan_lean_state. The bad drivers dataset shows gives amounts of collisions under circumstances such as speeding, alcohol, etc as well as data on insurance premiums cost and lost based on states. The partisan dataset shows the party of the vote, how they lean, and the Cook Voting Index. I selected the two datasets from the fivethirtyeight to see if there were any potential associations between state, party, and “bad driving”. I expected to see more speed related accidents in Texas, New Mexico, and Arizona due to large states and highways going straight across.</p>
+<pre class="r"><code>#install.packages(&quot;tidyverse&quot;)
+library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.1.1     ✔ purrr   0.3.2
+## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
+## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
+## ✔ readr   1.3.1     ✔ forcats 0.4.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>#install.packages(&quot;fivethirtyeight&quot;)
+library(fivethirtyeight)
+library(ggplot2)
+untidydrivers&lt;-bad_drivers%&gt;%pivot_longer(contains(&quot;perc&quot;))
+untidyproj1&lt;-untidydrivers%&gt;%full_join(partisan_lean_state,by=&quot;state&quot;)</code></pre>
+<pre><code>## Warning: Column `state` joining character vector and factor, coercing into
+## character vector</code></pre>
+<pre class="r"><code>tidyproj1&lt;-untidyproj1%&gt;%pivot_wider(names_from = &quot;name&quot;)
+tidyproj1&lt;-tidyproj1[-c(51),]</code></pre>
+<p>First the packages with the datasets were loaded along with packages containing functions needed throughout the project. Then all the columns containing a percentage were merged using pivot_longer to untidy the data. The data was then joined with a full join to keep all of the variables. All but one datapoint had corresponding values by state, which had D.C.counting as a state and was removed. D.C. being removed might cause some discrepancies due to those drivers not being accounted for. Once the data was joined, pivot_wider was used to re-tidy the data and separate the accidents by type; speeding, alcohol, not distracted, and no previous.</p>
+<pre class="r"><code>tidyproj1%&gt;%filter(state==&quot;Texas&quot;)%&gt;%select(state,pvi_party,pvi_amount,perc_speeding,perc_alcohol,num_drivers,insurance_premiums,losses)%&gt;%arrange(desc(perc_speeding))</code></pre>
+<pre><code>## # A tibble: 1 x 8
+##   state pvi_party pvi_amount perc_speeding perc_alcohol num_drivers
+##   &lt;chr&gt; &lt;fct&gt;          &lt;dbl&gt;         &lt;int&gt;        &lt;int&gt;       &lt;dbl&gt;
+## 1 Texas R                 17            40           38        19.4
+## # … with 2 more variables: insurance_premiums &lt;dbl&gt;, losses &lt;dbl&gt;</code></pre>
+<pre class="r"><code>tp1sp&lt;-tidyproj1%&gt;%mutate(speedparty=pvi_amount/perc_speeding)
+
+
+summtidpro1&lt;-tidyproj1%&gt;%group_by(pvi_party)%&gt;%summarize(mean_drivers=mean(num_drivers,na.rm = TRUE),mean_ip=mean(insurance_premiums,na.rm = TRUE),mean_losses=mean(losses,na.rm = TRUE),mean_speed=mean(perc_speeding,na.rm = TRUE),mean_alc=mean(perc_alcohol,na.rm = TRUE),sd_drivers=sd(num_drivers,na.rm = TRUE),sd_ip=sd(insurance_premiums,na.rm = TRUE),sd_losses=sd(losses,na.rm = TRUE),sd_speed=sd(perc_speeding,na.rm = TRUE),sd_alc=sd(perc_alcohol,na.rm = TRUE),min(perc_speeding),max(perc_speeding))</code></pre>
+<pre><code>## Warning: Factor `pvi_party` contains implicit NA, consider using
+## `forcats::fct_explicit_na`</code></pre>
+<p>The first chunk of data wrangling code was a series of pipes to spit out a specific set of information. It was filtered by returning only values from Texas, then selected certain columns of data from Texas. From there the percentage of fatal accidents were arranged in descending order. Then in a separate line of code, the tidy merged data was mutated to create a new column called “speedparty” which is the Voting Index party lean divided by the speeding fatal accident percentage. Lastly, the data was grouped by party and summarized by mean and standard deviation of several different recorded data. The min and max of percentage of fatal speeding accidents were also found and summarized into table.</p>
+<pre class="r"><code>tidyproj1%&gt;%ggplot(aes(x=num_drivers,y=perc_speeding,color=state))+ggtitle(&quot;Drivers by state&quot;)+xlab(&quot;Drivers in fatal accidents (pbm)&quot;)+ylab(&quot;% who were speeding&quot;)+geom_point()+theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>This plot shows where each state is (in a different color) in relation to one another by the amount of fatal drivers and how much of those fatal accidents were speed related. There are no clear relationships or trends between any of these variables. However, there are still slight clusters of points. There are also some really high and low values in both speed percentage and total fatal accidents per billion in which I would be curious as to which states and why these values belong to and what the cause would be for this result.</p>
+<pre class="r"><code>tidyproj1%&gt;%ggplot(aes(x=state,y=perc_speeding,fill=pvi_party))+geom_bar(stat = &quot;summary&quot;)+theme(axis.text.x = element_text(angle = 45))+ggtitle(&quot;Speeding by State&quot;)+xlab(&quot;State&quot;)+ylab(&quot;Percent speeding&quot;)</code></pre>
+<pre><code>## No summary function supplied, defaulting to `mean_se()</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-4-1.png" width="672" /> This graph shows states on the x axis and the percentage of fatal speeding crashes on the y axis. Each state’s bar is colored to show the the way each state voted. There doesn’t seem to be any sort of indication or correlation between party and the relation to speeding crashes. Just by looking however, there does seem like there could be some correlation between larger and more rural states and speeding accidents, possibly because of less trafficked highways and more ground to cover. More rural and southern states also tend to be republican.</p>
+<pre class="r"><code>proj1nums&lt;-tidyproj1%&gt;%select_if(is.numeric)%&gt;%scale()
+
+rownames(proj1nums)&lt;-tidyproj1$state
+
+proj_pca&lt;-princomp(na.omit(proj1nums),cor = TRUE)
+
+names(proj_pca)</code></pre>
+<pre><code>## [1] &quot;sdev&quot;     &quot;loadings&quot; &quot;center&quot;   &quot;scale&quot;    &quot;n.obs&quot;    &quot;scores&quot;  
+## [7] &quot;call&quot;</code></pre>
+<pre class="r"><code>summary(proj_pca,loadings = T)</code></pre>
+<pre><code>## Importance of components:
+##                           Comp.1    Comp.2    Comp.3    Comp.4    Comp.5
+## Standard deviation     1.3209116 1.2316563 1.1135573 1.0260723 0.9477790
+## Proportion of Variance 0.2181009 0.1896222 0.1550012 0.1316030 0.1122856
+## Cumulative Proportion  0.2181009 0.4077231 0.5627243 0.6943274 0.8066130
+##                            Comp.6     Comp.7     Comp.8
+## Standard deviation     0.83663544 0.71774746 0.57617331
+## Proportion of Variance 0.08749486 0.06439518 0.04149696
+## Cumulative Proportion  0.89410786 0.95850304 1.00000000
+## 
+## Loadings:
+##                     Comp.1 Comp.2 Comp.3 Comp.4 Comp.5 Comp.6 Comp.7
+## num_drivers          0.272 -0.190  0.622         0.165  0.596  0.324
+## insurance_premiums  -0.542 -0.461                                   
+## losses              -0.570 -0.393  0.138                            
+## pvi_amount           0.266 -0.299  0.505 -0.175 -0.153 -0.728       
+## perc_speeding        0.182 -0.356 -0.234  0.631 -0.409         0.468
+## perc_alcohol         0.314 -0.458         0.339  0.476        -0.568
+## perc_not_distracted  0.258 -0.303 -0.214 -0.470 -0.608  0.308 -0.329
+## perc_no_previous    -0.195  0.281  0.479  0.470 -0.432  0.121 -0.480
+##                     Comp.8
+## num_drivers         -0.100
+## insurance_premiums  -0.698
+## losses               0.695
+## pvi_amount                
+## perc_speeding             
+## perc_alcohol         0.125
+## perc_not_distracted       
+## perc_no_previous</code></pre>
+<pre class="r"><code>eigval&lt;-proj_pca$sdev^2
+varprop=round(eigval/sum(eigval),2)
+ 
+ggplot()+geom_bar(aes(y=varprop,x=1:8),stat=&quot;identity&quot;)+xlab(&quot;&quot;)+geom_path(aes(y=varprop,x=1:8))+geom_text(aes(x=1:8,y=varprop,label=round(varprop,2)),vjust=1,col=&quot;white&quot;,size=5)+scale_y_continuous(breaks=seq(0,.6,.2),labels = scales::percent)+scale_x_continuous(breaks=1:10)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>round(cumsum(eigval)/sum(eigval),2)</code></pre>
+<pre><code>## Comp.1 Comp.2 Comp.3 Comp.4 Comp.5 Comp.6 Comp.7 Comp.8 
+##   0.22   0.41   0.56   0.69   0.81   0.89   0.96   1.00</code></pre>
+<pre class="r"><code>eigval</code></pre>
+<pre><code>##    Comp.1    Comp.2    Comp.3    Comp.4    Comp.5    Comp.6    Comp.7 
+## 1.7448076 1.5169772 1.2400099 1.0528243 0.8982850 0.6999589 0.5151614 
+##    Comp.8 
+## 0.3319757</code></pre>
+<pre class="r"><code>ggplot()+geom_point(aes(proj_pca$scores[,1], proj_pca$scores[,2]))+xlab(&quot;PC1&quot;)+ylab(&quot;PC2&quot;)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+</div>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

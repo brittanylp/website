@@ -1,6 +1,6 @@
 baseurl = "/"
 languageCode = "en-US"
-title = "Chris Turner"
+title = "Brittany Phillips"
 # Enable comments by entering your Disqus shortname
 disqusShortname = ""
 # Enable Google Analytics by entering your tracking code
@@ -11,7 +11,7 @@ theme = "hugo-sustain"
   post = "/:year/:month/:day/:slug"
 
 [params]
-  avatar = "profile.png"
+  avatar = "zion.jpg"
   author = "Brittany Phillips"
   description = "Describe your website"
 
@@ -20,13 +20,10 @@ theme = "hugo-sustain"
   custom_js  = []
 
 [params.social]
-  Github        = "username"
-  Email         = "email@example.com"
-  Twitter       = "username"
-  LinkedIn      = "username"
-  Stackoverflow = "username"
-  Medium        = "username"
-  Telegram      = "username"
+  Github        = "brittanyphillips"
+  Email         = "britt.luutx@gmail.com"
+  LinkedIn      = "brittany-phillips-garcia-0a9b4a157"
+
 
 ## Main Menu
 [[menu.main]]

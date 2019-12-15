@@ -20,7 +20,7 @@ theme = "hugo-sustain"
   custom_js  = []
 
 [params.social]
-  Github        = "brittanyphillips"
+  Github        = "brittanylp/website"
   Email         = "britt.luutx@gmail.com"
   LinkedIn      = "brittany-phillips-garcia-0a9b4a157"
 
